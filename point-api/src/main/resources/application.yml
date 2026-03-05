@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: point-api
+
+  profiles:
+    active: local
+
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+
+server:
+  shutdown: graceful

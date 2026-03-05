@@ -1,0 +1,205 @@
+= 포인트 시스템 API 문서
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 3
+:sectlinks:
+:sectnums:
+
+== 포인트 적립 API
+
+=== 포인트 적립
+
+==== curl
+include::{snippets}/point-earn/earn/curl-request.adoc[]
+
+==== HTTP Request
+include::{snippets}/point-earn/earn/http-request.adoc[]
+
+==== Request Fields
+include::{snippets}/point-earn/earn/request-fields.adoc[]
+
+==== HTTP Response
+include::{snippets}/point-earn/earn/http-response.adoc[]
+
+==== Response Fields
+include::{snippets}/point-earn/earn/response-fields.adoc[]
+
+=== 적립 취소
+
+==== curl
+include::{snippets}/point-earn/cancel-earn/curl-request.adoc[]
+
+==== HTTP Request
+include::{snippets}/point-earn/cancel-earn/http-request.adoc[]
+
+==== Path Parameters
+include::{snippets}/point-earn/cancel-earn/path-parameters.adoc[]
+
+==== HTTP Response
+include::{snippets}/point-earn/cancel-earn/http-response.adoc[]
+
+== 포인트 사용 API
+
+=== 포인트 사용
+
+==== curl
+include::{snippets}/point-use/use/curl-request.adoc[]
+
+==== HTTP Request
+include::{snippets}/point-use/use/http-request.adoc[]
+
+==== Request Fields
+include::{snippets}/point-use/use/request-fields.adoc[]
+
+==== HTTP Response
+include::{snippets}/point-use/use/http-response.adoc[]
+
+==== Response Fields
+include::{snippets}/point-use/use/response-fields.adoc[]
+
+=== 사용 취소
+
+==== curl
+include::{snippets}/point-use/cancel-use/curl-request.adoc[]
+
+==== HTTP Request
+include::{snippets}/point-use/cancel-use/http-request.adoc[]
+
+==== Request Fields
+include::{snippets}/point-use/cancel-use/request-fields.adoc[]
+
+==== HTTP Response
+include::{snippets}/point-use/cancel-use/http-response.adoc[]
+
+==== Response Fields
+include::{snippets}/point-use/cancel-use/response-fields.adoc[]
+
+== 포인트 조회 API
+
+=== 잔액 조회
+
+==== curl
+include::{snippets}/point-query/balance/curl-request.adoc[]
+
+==== HTTP Request
+include::{snippets}/point-query/balance/http-request.adoc[]
+
+==== Path Parameters
+include::{snippets}/point-query/balance/path-parameters.adoc[]
+
+==== HTTP Response
+include::{snippets}/point-query/balance/http-response.adoc[]
+
+==== Response Fields
+include::{snippets}/point-query/balance/response-fields.adoc[]
+
+=== 이력 조회 (페이징)
+
+==== curl
+include::{snippets}/point-query/transactions/curl-request.adoc[]
+
+==== HTTP Request
+include::{snippets}/point-query/transactions/http-request.adoc[]
+
+==== Path Parameters
+include::{snippets}/point-query/transactions/path-parameters.adoc[]
+
+==== Query Parameters
+include::{snippets}/point-query/transactions/query-parameters.adoc[]
+
+==== HTTP Response
+include::{snippets}/point-query/transactions/http-response.adoc[]
+
+==== Response Fields
+include::{snippets}/point-query/transactions/response-fields.adoc[]
+
+=== 적립건 목록 (페이징)
+
+==== curl
+include::{snippets}/point-query/ledgers/curl-request.adoc[]
+
+==== HTTP Request
+include::{snippets}/point-query/ledgers/http-request.adoc[]
+
+==== Path Parameters
+include::{snippets}/point-query/ledgers/path-parameters.adoc[]
+
+==== Query Parameters
+include::{snippets}/point-query/ledgers/query-parameters.adoc[]
+
+==== HTTP Response
+include::{snippets}/point-query/ledgers/http-response.adoc[]
+
+==== Response Fields
+include::{snippets}/point-query/ledgers/response-fields.adoc[]
+
+=== 주문별 사용 상세
+
+==== curl
+include::{snippets}/point-query/usage-details/curl-request.adoc[]
+
+==== HTTP Request
+include::{snippets}/point-query/usage-details/http-request.adoc[]
+
+==== Path Parameters
+include::{snippets}/point-query/usage-details/path-parameters.adoc[]
+
+==== HTTP Response
+include::{snippets}/point-query/usage-details/http-response.adoc[]
+
+==== Response Fields
+include::{snippets}/point-query/usage-details/response-fields.adoc[]
+
+== 포인트 설정 API
+
+=== 설정 전체 조회
+
+==== curl
+include::{snippets}/point-config/get-all/curl-request.adoc[]
+
+==== HTTP Request
+include::{snippets}/point-config/get-all/http-request.adoc[]
+
+==== HTTP Response
+include::{snippets}/point-config/get-all/http-response.adoc[]
+
+==== Response Fields
+include::{snippets}/point-config/get-all/response-fields.adoc[]
+
+=== 설정 변경
+
+==== curl
+include::{snippets}/point-config/update/curl-request.adoc[]
+
+==== HTTP Request
+include::{snippets}/point-config/update/http-request.adoc[]
+
+==== Path Parameters
+include::{snippets}/point-config/update/path-parameters.adoc[]
+
+==== Request Fields
+include::{snippets}/point-config/update/request-fields.adoc[]
+
+==== HTTP Response
+include::{snippets}/point-config/update/http-response.adoc[]
+
+==== Response Fields
+include::{snippets}/point-config/update/response-fields.adoc[]
+
+== 오류 코드
+
+API 호출 시 발생할 수 있는 오류 코드 목록입니다.
+
+오류 응답 형식:
+[source,json]
+----
+{
+  "status": 400,
+  "code": "P001",
+  "message": "1회 최대 적립 금액을 초과했습니다."
+}
+----
+
+include::{snippets}/error-codes/error-codes.adoc[]

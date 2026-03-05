@@ -1,0 +1,58 @@
+@startuml Idempotency Key Sequence
+
+skinparam shadowing false
+skinparam defaultFontName "D2Coding"
+skinparam sequenceArrowThickness 1.5
+
+actor Client
+participant "API Server\n(Service)" as Service
+participant "Redis\n(캐시)" as Redis
+database "DB\n(transaction)" as DB
+
+== 1. 최초 요청 ==
+
+Client -> Client : 멱등키 생성\nUUID.randomUUID()
+Client -> Service : POST /api/v1/points/earn\nX-Idempotency-Key: {uuid}
+Service -> Redis : GET idempotency:{uuid}
+Redis --> Service : null (미스)
+Service -> DB : 비즈니스 로직 수행\n(Transaction INSERT\nidempotency_key = {uuid})
+DB --> Service : 성공
+Service -> Redis : SET idempotency:{uuid}\n{응답}\nEX 86400
+Service --> Client : 201 Created
+Client -> Client : 멱등키와 응답 저장
+
+== 2. 응답 유실로 재시도 - Redis 히트 ==
+
+Client -> Client : 저장된 멱등키 재사용
+Client -> Service : POST /api/v1/points/earn\nX-Idempotency-Key: {uuid} (동일)
+Service -> Redis : GET idempotency:{uuid}
+Redis --> Service : {응답} (캐시 존재)
+Service --> Client : 200 OK + 기존 응답\n(DB 접근 없음)
+
+== 3. 장시간 후 재시도 - Redis 미스, DB 히트 ==
+
+Client -> Client : 저장된 멱등키 재사용
+Client -> Service : POST /api/v1/points/earn\nX-Idempotency-Key: {uuid} (동일)
+Service -> Redis : GET idempotency:{uuid}
+Redis --> Service : null (TTL 만료)
+Service -> DB : Transaction 조회\n(idempotency_key = {uuid})
+DB --> Service : 기존 Transaction 존재
+Service -> Redis : SET idempotency:{uuid}\n{응답}\nEX 86400
+Service --> Client : 200 OK + 기존 응답
+
+== 4. 새로운 요청 ==
+
+Client -> Client : 새 멱등키 생성\nUUID.randomUUID()
+Client -> Service : POST /api/v1/points/earn\nX-Idempotency-Key: {new-uuid}
+Service -> Redis : GET idempotency:{new-uuid}
+Redis --> Service : null
+Service -> DB : 비즈니스 로직 수행
+DB --> Service : 성공
+Service --> Client : 201 Created
+
+== 5. 멱등키 없이 요청 ==
+
+Client -> Service : POST /api/v1/points/earn\n(헤더 없음)
+Service --> Client : 400 Bad Request\n"X-Idempotency-Key 필수"
+
+@enduml

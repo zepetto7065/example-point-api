@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: point-batch
+
+  profiles:
+    active: local
+
+  batch:
+    job:
+      enabled: true

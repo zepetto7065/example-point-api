@@ -1,0 +1,72 @@
+@startuml ERD
+
+skinparam linetype ortho
+skinparam shadowing false
+skinparam defaultFontName "D2Coding"
+
+entity "wallet" as wallet {
+  * wallet_id : BIGINT <<PK, AUTO>>
+  --
+  * member_id : BIGINT <<UNIQUE>>
+  * total_balance : BIGINT
+  * version : BIGINT
+  * created_at : DATETIME
+  * updated_at : DATETIME
+}
+
+entity "ledger" as ledger {
+  * ledger_id : BIGINT <<PK, AUTO>>
+  --
+  * point_key : VARCHAR <<UNIQUE>>
+  * member_id : BIGINT
+  * earn_amount : BIGINT
+  * balance : BIGINT
+  * earn_type : VARCHAR
+  description : VARCHAR
+  admin_id : VARCHAR
+  source_transaction_id : BIGINT
+  * start_at : DATETIME
+  * expire_at : DATETIME
+  * status : VARCHAR
+  * created_at : DATETIME
+  * updated_at : DATETIME
+}
+
+entity "transaction" as transaction {
+  * transaction_id : BIGINT <<PK, AUTO>>
+  --
+  * point_key : VARCHAR <<UNIQUE>>
+  * member_id : BIGINT
+  * type : VARCHAR
+  * amount : BIGINT
+  order_id : VARCHAR
+  related_point_key : VARCHAR
+  description : VARCHAR
+  * created_at : DATETIME
+}
+
+entity "usage_detail" as usage_detail {
+  * usage_detail_id : BIGINT <<PK, AUTO>>
+  --
+  * use_transaction_id : BIGINT <<FK>>
+  * ledger_id : BIGINT <<FK>>
+  * amount : BIGINT
+  * cancel_amount : BIGINT
+  * created_at : DATETIME
+  * updated_at : DATETIME
+}
+
+entity "config" as config {
+  * config_id : BIGINT <<PK, AUTO>>
+  --
+  * config_key : VARCHAR <<UNIQUE>>
+  * config_value : VARCHAR
+  description : VARCHAR
+  * created_at : DATETIME
+  * updated_at : DATETIME
+}
+
+usage_detail }o--|| transaction : use_transaction_id
+usage_detail }o--|| ledger : ledger_id
+
+@enduml

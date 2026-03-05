@@ -1,0 +1,172 @@
+@startuml AWS Architecture - Point System
+
+skinparam rectangle {
+    BackgroundColor White
+    BorderColor #232F3E
+    FontColor Black
+}
+
+skinparam actor {
+    BackgroundColor White
+    BorderColor #232F3E
+}
+
+skinparam cloud {
+    BackgroundColor White
+    BorderColor #232F3E
+}
+
+skinparam card {
+    BackgroundColor #F8F9FA
+    BorderColor #DEE2E6
+}
+
+skinparam package {
+    BackgroundColor #FEFEFE
+    BorderColor #ADB5BD
+}
+
+actor "사용자" as user
+
+cloud "AWS Cloud" {
+
+    rectangle "Route 53" as route53 {
+        card "DNS 라우팅" as dns
+    }
+
+    package "VPC (10.0.0.0/16)" {
+
+        package "Availability Zone A" {
+            rectangle "Public Subnet\n10.0.1.0/24" as pubsub1 {
+                rectangle "Application\nLoad Balancer" as alb {
+                    card "HTTPS:443" as https
+                }
+            }
+
+            rectangle "Private Subnet\n10.0.10.0/24" as prisub1 {
+                rectangle "ECS Fargate" as ecs1 {
+                    card "Spring Boot API\nContainer 1" as api1
+                }
+
+                rectangle "RDS MySQL" as rds {
+                    card "Primary Instance\n(Multi-AZ)" as db_primary
+                }
+            }
+        }
+
+        package "Availability Zone B" {
+            rectangle "Private Subnet\n10.0.11.0/24" as prisub2 {
+                rectangle "ECS Fargate" as ecs2 {
+                    card "Spring Boot API\nContainer 2" as api2
+                }
+            }
+        }
+
+        rectangle "Cache Subnet\n10.0.20.0/24" as cache_subnet {
+            rectangle "ElastiCache" as redis {
+                card "Redis Cluster\n(캐시)" as redis_cluster
+            }
+        }
+    }
+
+    rectangle "Secrets Manager" as secrets {
+        card "DB 자격증명\nAPI Keys" as credentials
+    }
+
+    rectangle "CloudWatch" as cloudwatch {
+        card "로그 수집\n메트릭 모니터링\n알람" as monitoring
+    }
+}
+
+' User Flow
+user -down-> route53 : "HTTPS 요청"
+route53 -down-> alb : "라우팅"
+
+' Load Balancing
+alb -down-> ecs1 : "트래픽 분산"
+alb -down-> ecs2 : "트래픽 분산"
+
+' Database Access
+ecs1 -right-> rds : "포인트 조회/저장"
+ecs2 -right-> rds : "포인트 조회/저장"
+
+' Cache Access
+ecs1 --> redis : "캐시 조회/저장"
+ecs2 --> redis : "캐시 조회/저장"
+
+' Secrets Access
+ecs1 --> secrets : "자격증명 조회"
+ecs2 --> secrets : "자격증명 조회"
+
+' Monitoring
+ecs1 --> cloudwatch : "로그/메트릭"
+ecs2 --> cloudwatch : "로그/메트릭"
+rds --> cloudwatch : "DB 메트릭"
+redis --> cloudwatch : "캐시 메트릭"
+alb --> cloudwatch : "ALB 메트릭"
+
+note right of ecs1
+  <b>포인트 시스템 API</b>
+  ━━━━━━━━━━━━━━━━━━━
+  • Java 21
+  • Spring Boot 3.x
+  • RESTful API
+
+  <b>주요 기능</b>
+  • 포인트 적립/사용/취소
+  • 만료 처리 스케줄러
+  • 주문 연계 추적
+  • 동시성 제어
+
+  <b>인프라</b>
+  • Auto Scaling (2-10 tasks)
+  • Health Check
+  • 롤링 배포
+end note
+
+note right of rds
+  <b>데이터베이스</b>
+  ━━━━━━━━━━━━━━━━━━━
+  • MySQL 8.0+
+  • Multi-AZ 구성
+
+  <b>데이터</b>
+  • 포인트 거래 이력
+  • 사용자 잔액 관리
+  • 만료일 추적
+  • 주문 연계 정보
+
+  <b>백업</b>
+  • 자동 백업 (7일)
+  • Point-in-Time Recovery
+end note
+
+note bottom of redis
+  <b>캐시 레이어</b>
+  ━━━━━━━━━━━━━━━━━━━
+  • Redis Cluster Mode
+  • API 응답 캐시
+  • 분산 락 (동시성 제어)
+end note
+
+note left of alb
+  <b>보안 및 네트워크</b>
+  ━━━━━━━━━━━━━━━━━━━
+  • SSL/TLS
+  • WAF 적용
+  • Security Groups
+  • HTTPS Only
+  • DDoS Protection
+end note
+
+note bottom of cloudwatch
+  <b>모니터링 메트릭</b>
+  ━━━━━━━━━━━━━━━━━━━
+  • API 응답 시간
+  • 에러율
+  • DB Connection Pool
+  • 캐시 Hit/Miss Rate
+  • Auto Scaling 이벤트
+end note
+
+@enduml
