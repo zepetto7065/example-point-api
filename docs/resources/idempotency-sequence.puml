@@ -50,7 +50,24 @@ Service -> DB : 비즈니스 로직 수행
 DB --> Service : 성공
 Service --> Client : 201 Created
 
-== 5. 멱등키 없이 요청 ==
+== 5. 동시 요청 (Race Condition) ==
+
+Client -> Service : POST /api/v1/points/earn\nX-Idempotency-Key: {uuid}
+Service -> Redis : GET idempotency:{uuid}
+Redis --> Service : null (미스)
+Service -> DB : Transaction 조회
+DB --> Service : 없음
+
+ref over Service, DB
+    다른 요청이 먼저 동일 멱등키로
+    Transaction INSERT 완료
+end ref
+
+Service -> DB : 비즈니스 로직 수행\n(Transaction INSERT)
+DB --> Service : DataIntegrityViolationException\n(유니크 제약 위반)
+Service --> Client : 409 Conflict\n"이미 처리된 요청입니다."
+
+== 6. 멱등키 없이 요청 ==
 
 Client -> Service : POST /api/v1/points/earn\n(헤더 없음)
 Service --> Client : 400 Bad Request\n"X-Idempotency-Key 필수"
