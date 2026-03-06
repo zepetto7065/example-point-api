@@ -16,6 +16,10 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.context.ApplicationContext;
 
+import com.musinsa.point.exception.PointErrorCode;
+import com.musinsa.point.exception.PointException;
+import org.springframework.dao.DataIntegrityViolationException;
+
 import java.lang.reflect.Method;
 import java.util.Optional;
 
@@ -153,6 +157,30 @@ class IdempotencyAspectTest {
         assertThatThrownBy(() -> idempotencyAspect.handleIdempotency(joinPoint, idempotent))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("@IdempotencyKey parameter not found");
+    }
+
+    @Test
+    @DisplayName("proceed 중 DataIntegrityViolationException 발생 시 DUPLICATE_REQUEST 예외를 던진다")
+    void shouldThrowDuplicateRequestWhenDataIntegrityViolationOccurs() throws Throwable {
+        // given
+        String idempotencyKey = "race-condition-key";
+        Method method = TestService.class.getMethod("testMethod", String.class);
+
+        when(joinPoint.getSignature()).thenReturn(methodSignature);
+        when(methodSignature.getMethod()).thenReturn(method);
+        when(methodSignature.getReturnType()).thenReturn(String.class);
+        when(joinPoint.getArgs()).thenReturn(new Object[]{idempotencyKey});
+        when(idempotencyManager.findCachedResponse(idempotencyKey, String.class))
+                .thenReturn(Optional.empty());
+        when(idempotencyManager.findInDb(idempotencyKey))
+                .thenReturn(Optional.empty());
+        when(joinPoint.proceed()).thenThrow(new DataIntegrityViolationException("Unique constraint violated"));
+
+        // when & then
+        assertThatThrownBy(() -> idempotencyAspect.handleIdempotency(joinPoint, idempotent))
+                .isInstanceOf(PointException.class)
+                .extracting(e -> ((PointException) e).getErrorCode())
+                .isEqualTo(PointErrorCode.DUPLICATE_REQUEST);
     }
 
     static class TestService {

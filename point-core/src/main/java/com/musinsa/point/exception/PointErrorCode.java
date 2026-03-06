@@ -37,6 +37,7 @@ public enum PointErrorCode implements ErrorCode {
     CONFIG_NOT_FOUND(HttpStatus.NOT_FOUND, "P050", "설정을 찾을 수 없습니다."),
 
     // 공통
+    DUPLICATE_REQUEST(HttpStatus.CONFLICT, "P092", "이미 처리된 요청입니다."),
     MISSING_IDEMPOTENCY_KEY(HttpStatus.BAD_REQUEST, "P091", "X-Idempotency-Key 헤더가 필요합니다."),
     OPTIMISTIC_LOCK_CONFLICT(HttpStatus.CONFLICT, "P090", "동시 요청 충돌이 발생했습니다. 다시 시도해주세요."),
     INVALID_INPUT(HttpStatus.BAD_REQUEST, "P000", "입력값 검증 실패"),

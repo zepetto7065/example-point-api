@@ -3,12 +3,15 @@ package com.musinsa.point.api.component;
 import com.musinsa.point.api.annotation.Idempotent;
 import com.musinsa.point.api.annotation.IdempotencyKey;
 import com.musinsa.point.domain.Transaction;
+import com.musinsa.point.exception.PointErrorCode;
+import com.musinsa.point.exception.PointException;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.context.ApplicationContext;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Parameter;
@@ -40,11 +43,13 @@ public class IdempotencyAspect {
             return response;
         }
 
-        Object result = joinPoint.proceed();
-
-        idempotencyManager.cacheResponse(idempotencyKey, result);
-
-        return result;
+        try {
+            Object result = joinPoint.proceed();
+            idempotencyManager.cacheResponse(idempotencyKey, result);
+            return result;
+        } catch (DataIntegrityViolationException e) {
+            throw new PointException(PointErrorCode.DUPLICATE_REQUEST);
+        }
     }
 
     private String extractIdempotencyKey(ProceedingJoinPoint joinPoint) {
